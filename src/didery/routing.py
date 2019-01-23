@@ -1,19 +1,4 @@
-from didery.controllers import history as histories
-from didery.controllers import otp_blob as blobs
-from didery.controllers import relays
-from didery.controllers import errors
-from didery.controllers import static
-from didery.controllers import events
 from didery.controllers import surveys
-
-STATIC_BASE_PATH = "/static"
-DEFAULT_STATIC_BASE_PATH = "/"
-STREAM_BASE_PATH = "/stream"
-HISTORY_BASE_PATH = "/history"
-BLOB_BASE_PATH = "/blob"
-RELAY_BASE_PATH = "/relay"
-ERRORS_BASE_PATH = "/errors"
-EVENTS_BASE_PATH = "/event"
 SURVEY_BASE_PATH = "/surveys"
 
 
@@ -38,29 +23,3 @@ def loadEndPoints(app, store):
     survey = surveys.Survey()
     app.add_route('{}/{{id}}'.format(SURVEY_BASE_PATH), survey)
     app.add_route('{}'.format(SURVEY_BASE_PATH), survey)
-
-    sink = static.StaticSink()
-    app.add_sink(sink, prefix=DEFAULT_STATIC_BASE_PATH)
-
-    history = histories.History(store)
-    app.add_route('{}/{{did}}'.format(HISTORY_BASE_PATH), history)
-    app.add_route('{}'.format(HISTORY_BASE_PATH), history)
-
-    historyStream = histories.HistoryStream(store)
-    app.add_route('{}{}/{{did}}'.format(STREAM_BASE_PATH, HISTORY_BASE_PATH), historyStream)
-    app.add_route('{}{}'.format(STREAM_BASE_PATH, HISTORY_BASE_PATH), historyStream)
-
-    blob = blobs.OtpBlob(store)
-    app.add_route('{}/{{did}}'.format(BLOB_BASE_PATH), blob)
-    app.add_route('{}'.format(BLOB_BASE_PATH), blob)
-
-    relay = relays.Relay(store)
-    app.add_route('{}/{{uid}}'.format(RELAY_BASE_PATH), relay)
-    app.add_route('{}'.format(RELAY_BASE_PATH), relay)
-
-    error = errors.Error(store)
-    app.add_route('{}'.format(ERRORS_BASE_PATH), error)
-
-    event = events.Event(store)
-    app.add_route('{}/{{did}}'.format(EVENTS_BASE_PATH), event)
-    app.add_route('{}'.format(EVENTS_BASE_PATH), event)

@@ -1,6 +1,6 @@
 Background
 ==========
-The project is built on the open source [ioflo](https://github.com/ioflo) framework and also utilizes [click](http://click.pocoo.org/5/), and [lmdb](https://lmdb.readthedocs.io/en/release/) on the back end.  The frontend is built with [Transcrypt](https://www.transcrypt.org/documentation) and [mithril.js](https://mithril.js.org/).
+The project is built on the open source [ioflo](https://github.com/ioflo) framework and also utilizes [click](http://click.pocoo.org/5/), and [lmdb](https://lmdb.readthedocs.io/en/release/) on the back end.
 
 System Requirements
 ===================
