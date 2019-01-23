@@ -91,14 +91,14 @@ class optional_build_ext(build_ext):
 
 
 setup(
-    name='didery',
-    version="0.1.2",
+    name='SQSurvey',
+    version="0.0.1",
     license='Apache2',
-    description='DIDery Key Management Server',
-    long_description="Redundant persistent backup of key rotation events and otp encrypted private keys.",
-    author='Nicholas Telfer, Brady Hammond, Michael Mendoza',
+    description='Manages SeedQuest Survey Responses',
+    long_description="Backend for SeedQuest Surveys",
+    author='Nicholas Telfer',
     author_email='nick.telfer@consensys.net',
-    url='https://github.com/reputage/didery',
+    url='https://github.com/reputage/SQSurvey',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
@@ -150,8 +150,8 @@ setup(
     ] if Cython else [],
     entry_points={
         'console_scripts': [
-            'didery = didery.cli:main',
-            'dideryd = didery.app:main',
+            'sqsurvey = didery.cli:main',
+            'sqsurveyd = didery.app:main',
         ]
     },
     cmdclass={'build_ext': optional_build_ext},

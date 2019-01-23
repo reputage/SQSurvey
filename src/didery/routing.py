@@ -4,6 +4,7 @@ from didery.controllers import relays
 from didery.controllers import errors
 from didery.controllers import static
 from didery.controllers import events
+from didery.controllers import surveys
 
 STATIC_BASE_PATH = "/static"
 DEFAULT_STATIC_BASE_PATH = "/"
@@ -13,6 +14,7 @@ BLOB_BASE_PATH = "/blob"
 RELAY_BASE_PATH = "/relay"
 ERRORS_BASE_PATH = "/errors"
 EVENTS_BASE_PATH = "/event"
+SURVEY_BASE_PATH = "/surveys"
 
 
 class CORSMiddleware:
@@ -32,6 +34,10 @@ def loadEndPoints(app, store):
     :param store: Store
         ioflo datastore
     """
+
+    survey = surveys.Survey()
+    app.add_route('{}/{{id}}'.format(SURVEY_BASE_PATH), survey)
+    app.add_route('{}'.format(SURVEY_BASE_PATH), survey)
 
     sink = static.StaticSink()
     app.add_sink(sink, prefix=DEFAULT_STATIC_BASE_PATH)
