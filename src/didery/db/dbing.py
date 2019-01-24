@@ -8,27 +8,26 @@ except ImportError:
 
 MAX_DB_COUNT = 8
 
-DATABASE_DIR_PATH = "/var/didery/db"
-ALT_DATABASE_DIR_PATH = os.path.join('~', '.consensys/didery/db')
+DATABASE_DIR_PATH = "/var/sqsurvey/db"
+ALT_DATABASE_DIR_PATH = os.path.join('~', '.consensys/sqsurvey/db')
 
-DB_EVENT_HISTORY_NAME = b'event_history'
-DB_KEY_HISTORY_NAME = b'key_history'
-DB_OTP_BLOB_NAME = b'otp_blob'
+DB_SURVEY_RESULTS_NAME = b'survey_results'
 
 gDbDirPath = None   # database directory location has not been set up yet
-dideryDB = None    # database environment has not been set up yet
+SQSurveyDB = None    # database environment has not been set up yet
+surveyDB = None
 
 
 def setupDbEnv(baseDirPath=None, port=8080):
     """
-    Setup the module globals gDbDirPath, and dideryDB using baseDirPath
+    Setup the module globals gDbDirPath, and SQSurveyDB using baseDirPath
     if provided otherwise use DATABASE_DIR_PATH
     :param port: int
-        used to differentiate dbs for multiple didery servers running on the same computer
+        used to differentiate dbs for multiple SQSurvey servers running on the same computer
     :param baseDirPath: string
         directory where the database is located
     """
-    global gDbDirPath, dideryDB
+    global gDbDirPath, SQSurveyDB, surveyDB
 
     if not baseDirPath:
         baseDirPath = "{}{}".format(DATABASE_DIR_PATH, port)
@@ -51,315 +50,169 @@ def setupDbEnv(baseDirPath=None, port=8080):
 
     gDbDirPath = baseDirPath  # set global
 
-    dideryDB = lmdb.open(gDbDirPath, max_dbs=MAX_DB_COUNT)
-    dideryDB.open_db(DB_EVENT_HISTORY_NAME)
-    dideryDB.open_db(DB_KEY_HISTORY_NAME)
-    dideryDB.open_db(DB_OTP_BLOB_NAME)
+    SQSurveyDB = lmdb.open(gDbDirPath, max_dbs=MAX_DB_COUNT)
+    SQSurveyDB.open_db(DB_SURVEY_RESULTS_NAME)
 
-    return dideryDB
+    surveyDB = BaseSurveyDB()
 
-def eventCount():
-    """
-        Gets a count of the number of entries in the table
+    return SQSurveyDB
 
-        :return: int count
-    """
-    subDb = dideryDB.open_db(DB_EVENT_HISTORY_NAME)
 
-    with dideryDB.begin(db=subDb, write=False) as txn:
-        return txn.stat(subDb)['entries']
+class DB:
+    def __init__(self, namedDB):
+        """
+        :param namedDB: string
+            name of the table to be accessed
+        """
+        self.namedDB = namedDB
 
-def getEvent(did):
-    """
-        Find and return an event history matching the supplied did.
+    def count(self):
+        """
+            Gets a count of the number of entries in the table
 
-        :param did: string
-            W3C did identifier for history object
-        :return: dict
-    """
-    subDb = dideryDB.open_db(DB_EVENT_HISTORY_NAME)
+            :return: int count
+        """
+        subDb = SQSurveyDB.open_db(self.namedDB)
 
-    with dideryDB.begin(db=subDb, write=False) as txn:
-        raw_data = txn.get(did.encode())
+        with SQSurveyDB.begin(db=subDb, write=False) as txn:
+            return txn.stat(subDb)['entries']
 
-        if raw_data is None:
-            return None
+    def save(self, key, data):
+        """
+            Store a key value pair
 
-        return json.loads(raw_data)
+            :param key: string
+                key to identify data
+            :param data: dict
+                A dict of the data to be stored
 
+        """
+        subDb = SQSurveyDB.open_db(self.namedDB)
 
-def saveEvent(did, data, sigs):
-    """
-        Store an event and signatures
+        with SQSurveyDB.begin(db=subDb, write=True) as txn:
+            txn.put(
+                key.encode(),
+                json.dumps(data).encode()
+            )
 
-        :param did: string
-            W3C did string
-        :param data: dict
-            A dict containing the rotation history and signatures
+    def get(self, key):
+        """
+            Find and return a key value pair
 
-    """
-    db_entry = []
-    certifiable_data = {
-        "event": data,
-        "signatures": sigs
-    }
-    db_entry.append(certifiable_data)
+            :param key: string
+                key to look up
+            :return: dict
+        """
+        subDb = SQSurveyDB.open_db(self.namedDB)
 
-    old_data = getEvent(did)
-    if old_data is not None:
-        print(old_data)
-        for entry in old_data:
-            db_entry.append(entry)
+        with SQSurveyDB.begin(db=subDb, write=False) as txn:
+            raw_data = txn.get(key.encode())
 
-    subDb = dideryDB.open_db(DB_EVENT_HISTORY_NAME)
+            if raw_data is None:
+                return None
 
-    with dideryDB.begin(db=subDb, write=True) as txn:
-        txn.put(
-            did.encode(),
-            json.dumps(db_entry).encode()
-        )
+            return json.loads(raw_data)
 
-    return certifiable_data
-
-def getAllEvents(offset=0, limit=10):
-    """
-        Get all events in a range between the offset and offset+limit
-
-        :param offset: int starting point of the range
-        :param limit: int maximum number of entries to return
-        :return: dict
-    """
-    subDb = dideryDB.open_db(DB_EVENT_HISTORY_NAME)
-    values = {"data": []}
-
-    with dideryDB.begin(db=subDb, write=False) as txn:
-        cursor = txn.cursor()
-
-        count = 0
-        for key, value in cursor:
-            if count >= limit+offset:
-                break
-
-            if offset < count+1:
-                values["data"].append(value)
-
-            count += 1
-
-    return values
-
-
-def deleteEvent(did):
-    """
-        Find and delete a key rotation history matching the supplied did.
-
-    :param did: string
-        W3C did identifier for history object
-    :return: boolean
-    """
-    subDb = dideryDB.open_db(DB_EVENT_HISTORY_NAME)
-
-    with dideryDB.begin(db=subDb, write=True) as txn:
-        status = txn.delete(did.encode())
-
-        return status
-
-def historyCount():
-    """
-        Gets a count of the number of entries in the table
-
-        :return: int count
-    """
-    subDb = dideryDB.open_db(DB_KEY_HISTORY_NAME)
-
-    with dideryDB.begin(db=subDb, write=False) as txn:
-        return txn.stat(subDb)['entries']
-
-
-def saveHistory(did, data, sigs):
-    """
-        Store a rotation history and signatures
-
-        :param did: string
-            W3C did string
-        :param data: dict
-            A dict containing the rotation history and signatures
-
-    """
-    certifiable_data = {
-        "history": data,
-        "signatures": sigs
-    }
-    subDb = dideryDB.open_db(DB_KEY_HISTORY_NAME)
-
-    with dideryDB.begin(db=subDb, write=True) as txn:
-        txn.put(
-            did.encode(),
-            json.dumps(certifiable_data).encode()
-        )
-
-    return certifiable_data
-
-
-def getHistory(did):
-    """
-        Find and return a key rotation history matching the supplied did.
-
-        :param did: string
-            W3C did identifier for history object
-        :return: dict
-    """
-    subDb = dideryDB.open_db(DB_KEY_HISTORY_NAME)
-
-    with dideryDB.begin(db=subDb, write=False) as txn:
-        raw_data = txn.get(did.encode())
-
-        if raw_data is None:
-            return None
-
-        return json.loads(raw_data)
-
-
-def getAllHistories(offset=0, limit=10):
-    """
-        Get all rotation histories in a range between the offset and offset+limit
-
-        :param offset: int starting point of the range
-        :param limit: int maximum number of entries to return
-        :return: dict
-    """
-    subDb = dideryDB.open_db(DB_KEY_HISTORY_NAME)
-    values = {"data": []}
-
-    with dideryDB.begin(db=subDb, write=False) as txn:
-        cursor = txn.cursor()
-
-        count = 0
-        for key, value in cursor:
-            if count >= limit+offset:
-                break
-
-            if offset < count+1:
-                values["data"].append(json.loads(value))
-
-            count += 1
-
-    return values
-
-
-def deleteHistory(did):
-    """
-        Find and delete a key rotation history matching the supplied did.
-
-    :param did: string
-        W3C did identifier for history object
-    :return: boolean
-    """
-    subDb = dideryDB.open_db(DB_KEY_HISTORY_NAME)
-
-    with dideryDB.begin(db=subDb, write=True) as txn:
-        status = txn.delete(did.encode())
-
-        return status
-
-
-def otpBlobCount():
-    """
-        Gets a count of the number of entries in the table
-
-        :return: int count
-    """
-    subDb = dideryDB.open_db(DB_OTP_BLOB_NAME)
-
-    with dideryDB.begin(db=subDb, write=False) as txn:
-        return txn.stat(subDb)['entries']
-
-
-def saveOtpBlob(did, data, sigs):
-    """
-        Store a otp encrypted key and signatures
-
-        :param did: string
-            W3C did string
-        :param data: dict
-            A dict containing the otp encrypted key and signatures
-
-    """
-    certifiable_data = {
-        "otp_data": data,
-        "signatures": sigs
-    }
-    subDb = dideryDB.open_db(DB_OTP_BLOB_NAME)
-
-    with dideryDB.begin(db=subDb, write=True) as txn:
-        txn.put(
-            did.encode(),
-            json.dumps(certifiable_data).encode()
-        )
-
-    return certifiable_data
-
-
-def getOtpBlob(did):
-    """
-        Find and return an otp encrypted key matching the supplied did.
-
-        :param did: string
-            W3C did identifier for history object
-        :return: dict
-    """
-    subDb = dideryDB.open_db(DB_OTP_BLOB_NAME)
-
-    with dideryDB.begin(db=subDb, write=False) as txn:
-        raw_data = txn.get(did.encode())
-
-        if raw_data is None:
-            return None
-
-        return json.loads(raw_data)
-
-
-def getAllOtpBlobs(offset=0, limit=10):
-    """
-            Get all otp encrypted keys in a range between the offset and offset+limit
+    def getAll(self, offset=0, limit=10):
+        """
+            Get all key value pairs in a range between the offset and offset+limit
 
             :param offset: int starting point of the range
             :param limit: int maximum number of entries to return
             :return: dict
         """
-    subDb = dideryDB.open_db(DB_OTP_BLOB_NAME)
-    values = {"data": []}
+        subDb = SQSurveyDB.open_db(self.namedDB)
+        values = {"data": {}}
 
-    with dideryDB.begin(db=subDb, write=False) as txn:
-        cursor = txn.cursor()
+        with SQSurveyDB.begin(db=subDb, write=False) as txn:
+            cursor = txn.cursor()
 
-        count = 0
-        for key, value in cursor:
-            if count >= limit + offset:
-                break
+            count = 0
+            for key, value in cursor:
+                if count >= limit+offset:
+                    break
 
-            if offset < count + 1:
-                values["data"].append(json.loads(value))
+                if offset < count+1:
+                    values["data"][key] = json.loads(value)
 
-            count += 1
+                count += 1
 
-    return values
+        return values
+
+    def delete(self, key):
+        """
+            Find and delete a key value pair matching the supplied key.
+
+            :param key: string
+                key to delete
+            :return: boolean
+        """
+        subDb = SQSurveyDB.open_db(self.namedDB)
+
+        with SQSurveyDB.begin(db=subDb, write=True) as txn:
+            status = txn.delete(key.encode())
+
+            return status
 
 
-def deleteOtpBlob(did):
-    """
-        Find and delete a otp encrypted blob matching the supplied did.
+class BaseSurveyDB:
+    def __init__(self, db=None):
+        """
+            :param db: DB for interacting with lmdb
+        """
+        if db is None:
+            self.db = DB(DB_SURVEY_RESULTS_NAME)
+        else:
+            self.db = db
 
-    :param did: string
-        W3C did identifier for history object
-    :return: boolean
-    """
-    subDb = dideryDB.open_db(DB_OTP_BLOB_NAME)
+    def count(self):
+        """
+            Returns the number of entries in the table
 
-    with dideryDB.begin(db=subDb, write=True) as txn:
-        status = txn.delete(did.encode())
+            :return: int count
+        """
+        return self.db.count()
 
-        return status
+    def save(self, id, data):
+        """
+            Store a survey response
 
+            :param id: string
+                ip address
+            :param data: dict
+                A dict containing the survey response
 
-def loadTestData(name, data):
-    pass
+        """
+        self.db.save(id, data)
+
+        return data
+
+    def get(self, id):
+        """
+            Find and return a survey response matching the supplied id.
+
+            :param id: string
+                ip address connected to the survey response
+            :return: dict
+        """
+        return self.db.get(id)
+
+    def getAll(self, offset=0, limit=10):
+        """
+            Get all survey responses in a range between the offset and offset+limit
+
+            :param offset: int starting point of the range
+            :param limit: int maximum number of entries to return
+            :return: dict
+        """
+        return self.db.getAll(offset, limit)
+
+    def delete(self, id):
+        """
+            Find and delete a survey response matching the supplied id.
+
+            :param id: string
+                ip address connected to the survey response
+            :return: boolean
+        """
+        return self.db.delete(id)

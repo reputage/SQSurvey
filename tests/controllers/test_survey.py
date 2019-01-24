@@ -6,7 +6,7 @@ except ImportError:
 from didery.routing import *
 
 
-def testSurvey(client):
+def testSurveyPost(client):
     surveyResult = {
         "ip_address": "192.168.1.1"
     }
@@ -15,13 +15,29 @@ def testSurvey(client):
 
     assert json.loads(response.content) == surveyResult
 
-    client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
-    client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
+
+def testSurveyGetAll(client):
+    surveyResult = {
+        "ip_address": "192.168.1.1"
+    }
+
     client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
 
-    response = client.simulate_get(SURVEY_BASE_PATH)
+    response = json.loads(client.simulate_get(SURVEY_BASE_PATH).content)
 
-    assert len(json.loads(response.content)) == 4
+    assert len(response["data"]) == 1
 
-    for survey in json.loads(response.content).values():
+    for survey in response["data"].values():
         assert survey == surveyResult
+
+
+def testSurveyGet(client):
+    surveyResult = {
+        "ip_address": "192.168.1.1"
+    }
+
+    client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
+
+    response = client.simulate_get("{}/{}".format(SURVEY_BASE_PATH, "127.0.0.1"))
+
+    assert json.loads(response.content) == surveyResult

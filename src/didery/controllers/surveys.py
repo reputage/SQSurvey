@@ -7,6 +7,7 @@ except ImportError:
     import json
 
 from ..help import helping
+from ..db import dbing
 
 
 class Survey:
@@ -26,13 +27,13 @@ class Survey:
         :param id: string
             URL parameter specifying a specific response
         """
-        count = len(self.data)
+        count = dbing.surveyDB.count()
 
         if id is None:
             resp.append_header('X-Total-Count', count)
-            body = self.data
+            body = dbing.surveyDB.getAll(limit=count)
         else:
-            body = self.data[id]
+            body = dbing.surveyDB.get(id)
             if body is None:
                 raise falcon.HTTPError(falcon.HTTP_404)
 
@@ -48,13 +49,13 @@ class Survey:
         body = req.body
 
         key = req.remote_addr
-        
-        if key in self.data:
+
+        if dbing.surveyDB.get(key) is not None:
             raise falcon.HTTPError(falcon.HTTP_400,
                                    "Resource Already Exists",
                                    "Only one survey response per ip address allowed.")
 
-        self.data[key] = body
+        dbing.surveyDB.save(key, body)
 
         resp.body = json.dumps(body, ensure_ascii=False)
         resp.status = falcon.HTTP_201
