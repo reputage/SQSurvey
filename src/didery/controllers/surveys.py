@@ -28,9 +28,15 @@ class Survey:
         """
         count = len(self.data)
 
-        resp.append_header('X-Total-Count', count)
+        if id is None:
+            resp.append_header('X-Total-Count', count)
+            body = self.data
+        else:
+            body = self.data[id]
+            if body is None:
+                raise falcon.HTTPError(falcon.HTTP_404)
 
-        resp.body = json.dumps(self.data, ensure_ascii=False)
+        resp.body = json.dumps(body, ensure_ascii=False)
 
     def on_post(self, req, resp):
         """
@@ -41,7 +47,13 @@ class Survey:
         helping.parseReqBody(req)
         body = req.body
 
-        key = str(uuid.uuid4())
+        key = req.remote_addr
+        
+        if key in self.data:
+            raise falcon.HTTPError(falcon.HTTP_400,
+                                   "Resource Already Exists",
+                                   "Only one survey response per ip address allowed.")
+
         self.data[key] = body
 
         resp.body = json.dumps(body, ensure_ascii=False)
