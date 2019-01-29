@@ -49,6 +49,12 @@ class Survey:
         body = req.body
 
         key = req.remote_addr
+        if type(key) is tuple:
+            key = key[0]
+        if type(key) is not str:
+            falcon.HTTPError(falcon.HTTP_500,
+                             "Unrecoverable Error",
+                             "Could not access requestors IP Address. {}".format(key))
 
         if dbing.surveyDB.get(key) is not None:
             raise falcon.HTTPError(falcon.HTTP_400,
