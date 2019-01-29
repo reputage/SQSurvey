@@ -12,10 +12,12 @@ DATABASE_DIR_PATH = "/var/sqsurvey/db"
 ALT_DATABASE_DIR_PATH = os.path.join('~', '.consensys/sqsurvey/db')
 
 DB_SURVEY_RESULTS_NAME = b'survey_results'
+DB_LOG_NAME = b'log'
 
 gDbDirPath = None   # database directory location has not been set up yet
 SQSurveyDB = None    # database environment has not been set up yet
 surveyDB = None
+logDB = None
 
 
 def setupDbEnv(baseDirPath=None, port=8080):
@@ -52,6 +54,7 @@ def setupDbEnv(baseDirPath=None, port=8080):
 
     SQSurveyDB = lmdb.open(gDbDirPath, max_dbs=MAX_DB_COUNT)
     SQSurveyDB.open_db(DB_SURVEY_RESULTS_NAME)
+    SQSurveyDB.open_db(DB_LOG_NAME)
 
     surveyDB = BaseSurveyDB()
 
@@ -162,6 +165,69 @@ class BaseSurveyDB:
         """
         if db is None:
             self.db = DB(DB_SURVEY_RESULTS_NAME)
+        else:
+            self.db = db
+
+    def count(self):
+        """
+            Returns the number of entries in the table
+
+            :return: int count
+        """
+        return self.db.count()
+
+    def save(self, id, data):
+        """
+            Store a survey response
+
+            :param id: string
+                ip address
+            :param data: dict
+                A dict containing the survey response
+
+        """
+        self.db.save(id, data)
+
+        return data
+
+    def get(self, id):
+        """
+            Find and return a survey response matching the supplied id.
+
+            :param id: string
+                ip address connected to the survey response
+            :return: dict
+        """
+        return self.db.get(id)
+
+    def getAll(self, offset=0, limit=10):
+        """
+            Get all survey responses in a range between the offset and offset+limit
+
+            :param offset: int starting point of the range
+            :param limit: int maximum number of entries to return
+            :return: dict
+        """
+        return self.db.getAll(offset, limit)
+
+    def delete(self, id):
+        """
+            Find and delete a survey response matching the supplied id.
+
+            :param id: string
+                ip address connected to the survey response
+            :return: boolean
+        """
+        return self.db.delete(id)
+
+
+class BaseLogDB:
+    def __init__(self, db=None):
+        """
+            :param db: DB for interacting with lmdb
+        """
+        if db is None:
+            self.db = DB(DB_LOG_NAME)
         else:
             self.db = db
 

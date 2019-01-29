@@ -17,7 +17,6 @@ class Survey:
             store is reference to ioflo data store
         """
         self.store = store
-        self.data = {}
 
     def on_get(self, req, resp, id=None):
         """
@@ -48,14 +47,25 @@ class Survey:
         helping.parseReqBody(req)
         body = req.body
 
-        # documentation says remote_addr is a string, but in some cases it is a tuple
+        # documentation says remote_addr is a string,
+        # but in some cases it's a tuple.
         key = req.remote_addr
+
         if type(key) is tuple:
             key = key[0]
+
+        # We don't want to lose survey data, so if an ip address
+        # cannot be found fall back to uuid's to save the data.
         if type(key) is not str:
-            falcon.HTTPError(falcon.HTTP_500,
-                             "Unrecoverable Error",
-                             "Could not access requestors IP Address. {}".format(req.remote_addr))
+            key = str(uuid.uuid4())
+            log_data = {
+                "title": "Unknown IP Address Format",
+                "description": "Could not access requester's IP Address. {}".format(req.remote_addr),
+                "request_body": body,
+                "remote_addr": req.remote_addr,
+                "key": key
+            }
+            dbing.logDB.save(key, log_data)
 
         if dbing.surveyDB.get(key) is not None:
             raise falcon.HTTPError(falcon.HTTP_400,
