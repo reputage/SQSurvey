@@ -48,13 +48,14 @@ class Survey:
         helping.parseReqBody(req)
         body = req.body
 
+        # documentation says remote_addr is a string, but in some cases it is a tuple
         key = req.remote_addr
         if type(key) is tuple:
             key = key[0]
         if type(key) is not str:
             falcon.HTTPError(falcon.HTTP_500,
                              "Unrecoverable Error",
-                             "Could not access requestors IP Address. {}".format(key))
+                             "Could not access requestors IP Address. {}".format(req.remote_addr))
 
         if dbing.surveyDB.get(key) is not None:
             raise falcon.HTTPError(falcon.HTTP_400,
