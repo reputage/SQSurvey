@@ -10,6 +10,46 @@ from ..help import helping
 from ..db import dbing
 
 
+def parseQString(req, resp, resource, params):
+    req.offset = 0
+    req.limit = 10
+
+    if req.query_string:
+        queries = req.query_string.split('&')
+        for query in queries:
+            key, val = qStringValidation(query)
+            if key == 'offset':
+                req.offset = val
+            if key == 'limit':
+                req.limit = val
+
+
+def qStringValidation(query):
+    keyval = query.split('=')
+
+    if len(keyval) != 2:
+        raise falcon.HTTPError(falcon.HTTP_400,
+                               'Malformed Query String',
+                               'url query string missing value(s).')
+
+    key = keyval[0]
+    val = keyval[1]
+
+    try:
+        val = int(val)
+    except ValueError as ex:
+        raise falcon.HTTPError(falcon.HTTP_400,
+                               'Malformed Query String',
+                               'url query string value must be a number.')
+
+    if val < 0:
+        raise falcon.HTTPError(falcon.HTTP_400,
+                               'Malformed Query String',
+                               'url query string value must be a positive number.')
+
+    return key, val
+
+
 class Survey:
     def __init__(self, store=None):
         """
@@ -18,6 +58,7 @@ class Survey:
         """
         self.store = store
 
+    @falcon.before(parseQString)
     def on_get(self, req, resp, id=None):
         """
         Handle and respond to incoming GET request.
@@ -26,11 +67,18 @@ class Survey:
         :param id: string
             URL parameter specifying a specific response
         """
+        offset = req.offset
+        limit = req.limit
+
         count = dbing.surveyDB.count()
 
         if id is None:
+            if offset >= count:
+                resp.body = json.dumps({"data": {}}, ensure_ascii=False)
+                return
+
             resp.append_header('X-Total-Count', count)
-            body = dbing.surveyDB.getAll(limit=count)
+            body = dbing.surveyDB.getAll(offset, limit)
         else:
             body = dbing.surveyDB.get(id)
             if body is None:
