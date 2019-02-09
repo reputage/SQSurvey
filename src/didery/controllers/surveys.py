@@ -103,6 +103,8 @@ class Survey:
         if type(ip_address) is tuple:
             ip_address = ip_address[0]
 
+        body["ip_address"] = ip_address
+
         # We don't want to lose survey data, so if an ip address
         # cannot be found fall back to uuid's to save the data.
         if type(ip_address) is not str:

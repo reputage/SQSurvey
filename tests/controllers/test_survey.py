@@ -12,7 +12,7 @@ from didery.db.dbing import BaseSurveyDB, DB, DB_SURVEY_RESULTS_NAME
 
 def testSurveyPost(client):
     surveyResult = {
-        "ip_address": "192.168.1.1"
+        "ip_address": "127.0.0.1"
     }
 
     response = client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
@@ -26,7 +26,7 @@ def testSurveyPost(client):
 
 def testSurveyGetAll(client):
     surveyResult = {
-        "ip_address": "192.168.1.1"
+        "ip_address": "127.0.0.1"
     }
 
     client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
@@ -41,7 +41,7 @@ def testSurveyGetAll(client):
 
 def testSurveyGet(client):
     surveyResult = {
-        "ip_address": "192.168.1.1"
+        "ip_address": "127.0.0.1"
     }
 
     response = client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
@@ -149,7 +149,7 @@ def testValidGetAllWithQueryString(client):
     exp_result = {"data": {}}
 
     for i in range(0, 11):
-        history1 = {
+        history = {
             "id": "did:dad:NOf6ZghvGNbFc_wr3CC0tKZHz1qWAR4lD5aM-i0zSjw=",
             "changed": "2000-01-01T00:00:01+00:00",
             "signer": 1,
@@ -161,8 +161,8 @@ def testValidGetAllWithQueryString(client):
         }
 
         uid = str(uuid.uuid4())
-        db.save(uid, history1)
-        exp_result["data"][uid] = history1
+        db.save(uid, history)
+        exp_result["data"][uid] = history
 
     response = client.simulate_get(SURVEY_BASE_PATH, query_string="offset=0&limit=11")
     result = json.loads(response.content)
