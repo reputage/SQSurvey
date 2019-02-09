@@ -71,6 +71,47 @@ The server has a single endpoint that will service GET and POST requests
 http://localhost:8080/surveys
 ```
 
-* GET will return all entries
+* GET One
+Returns the original data uploaded with an ip_address field added
+```
+http://localhost:8080/surveys/{uuid}
+```
+Response
+```json
+{
+  "ip_address": "127.0.0.1",
+  "survey_data": ""
+}
+```
+
+* GET All
+Returns all responses starting at offset up to limit
+```
+http://localhost:8080/surveys?offset=0&limit=10
+```
+Response
+```json
+{
+   "data": {
+      "uuid": {
+          "ip_address": "127.0.0.1",
+          "survey_data": ""
+      },
+      "uuid2": {
+          "ip_address": "127.0.0.1",
+          "survey_data": ""
+      },
+      "uuid3": {
+          "ip_address": "127.0.0.1",
+          "survey_data": ""
+      },
+      "uuid4": {
+          "ip_address": "127.0.0.1",
+          "survey_data": ""
+      }
+   }
+}
+```
+
 
 * POST expects a json request body
