@@ -17,7 +17,11 @@ def testSurveyPost(client):
 
     response = client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
 
-    assert json.loads(response.content) == surveyResult
+    resp_data = json.loads(response.content)
+    resp_key = list(resp_data.keys())[0]
+
+    assert len(resp_data) == 1
+    assert resp_data[resp_key] == surveyResult
 
 
 def testSurveyGetAll(client):
@@ -40,9 +44,11 @@ def testSurveyGet(client):
         "ip_address": "192.168.1.1"
     }
 
-    client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
+    response = client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
 
-    response = client.simulate_get("{}/{}".format(SURVEY_BASE_PATH, "127.0.0.1"))
+    id = list(json.loads(response.content).keys())[0]
+
+    response = client.simulate_get("{}/{}".format(SURVEY_BASE_PATH, id))
 
     assert json.loads(response.content) == surveyResult
 
@@ -138,7 +144,7 @@ def testSurveyGetAllEmptyQueryValue(client):
     assert json.loads(response.content) == exp_result
 
 
-def testValidGetAll(client):
+def testValidGetAllWithQueryString(client):
     db = BaseSurveyDB(DB(DB_SURVEY_RESULTS_NAME))
     exp_result = {"data": {}}
 

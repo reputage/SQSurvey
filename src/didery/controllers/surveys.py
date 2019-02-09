@@ -97,30 +97,25 @@ class Survey:
 
         # documentation says remote_addr is a string,
         # but in some cases it's a tuple.
-        key = req.remote_addr
+        ip_address = req.remote_addr
+        key = str(uuid.uuid4())
 
-        if type(key) is tuple:
-            key = key[0]
+        if type(ip_address) is tuple:
+            ip_address = ip_address[0]
 
         # We don't want to lose survey data, so if an ip address
         # cannot be found fall back to uuid's to save the data.
-        if type(key) is not str:
-            key = str(uuid.uuid4())
+        if type(ip_address) is not str:
             log_data = {
                 "title": "Unknown IP Address Format",
                 "description": "Could not access requester's IP Address. {}".format(req.remote_addr),
                 "request_body": body,
                 "remote_addr": req.remote_addr,
-                "key": key
+                "ip_address": ip_address
             }
             dbing.logDB.save(key, log_data)
 
-        if dbing.surveyDB.get(key) is not None:
-            raise falcon.HTTPError(falcon.HTTP_400,
-                                   "Resource Already Exists",
-                                   "Only one survey response per ip address allowed.")
-
         dbing.surveyDB.save(key, body)
 
-        resp.body = json.dumps(body, ensure_ascii=False)
+        resp.body = json.dumps({key: body}, ensure_ascii=False)
         resp.status = falcon.HTTP_201
