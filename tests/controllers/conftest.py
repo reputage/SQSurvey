@@ -6,7 +6,6 @@ controllers directory.
 
 """
 
-import shutil
 import pytest
 import falcon
 from falcon import testing

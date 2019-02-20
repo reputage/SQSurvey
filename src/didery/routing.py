@@ -1,6 +1,7 @@
-from didery.controllers import surveys, logs
+from didery.controllers import surveys, logs, csvs
 SURVEY_BASE_PATH = "/surveys"
 LOGS_BASE_PATH = "/logs"
+CSVS_BASE_PATH = "/csv"
 
 
 class CORSMiddleware:
@@ -28,3 +29,6 @@ def loadEndPoints(app, store):
     log = logs.Logs()
     app.add_route('{}/{{id}}'.format(LOGS_BASE_PATH), log)
     app.add_route('{}'.format(LOGS_BASE_PATH), log)
+
+    csv = csvs.CSV()
+    app.add_route('{}'.format(CSVS_BASE_PATH), csv)
