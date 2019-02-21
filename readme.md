@@ -66,10 +66,13 @@ Running these tests prior to hosting the server helps ensure that everything in 
 
 API
 ===
-The server has a single endpoint that will service GET and POST requests
+The server has two endpoints.
 ```
 http://localhost:8080/surveys
+http://localhost:8080/csv
 ```
+/suveys
+-------
 
 GET One
 -------
@@ -121,4 +124,14 @@ POST
 Expects a json request body
 ```
 http://localhost:8080/surveys
+```
+
+/csv
+----
+
+GET
+---
+will return a .csv file download
+```
+http://localhost:8080/csv
 ```
