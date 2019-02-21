@@ -52,18 +52,19 @@ def to_csv(data):
     :param data: list of data items to be flattened and then saved in csv format
     :return: BytesIO file object
     """
-    temp_file = io.BytesIO()
+    temp_file = io.StringIO(newline='')
     csv_writer = csv.writer(temp_file)
 
     if len(data) <= 0:
-        csv_writer([])
+        csv_writer.writerow([])
         return temp_file.seek(0)
 
     headers, flattened_value = flatten(data[0])
-    csv_writer(headers)
+    csv_writer.writerow(headers)
 
     for value in data:
         headers, flattened_value = flatten(value)
-        csv_writer(flattened_value)
+        csv_writer.writerow(flattened_value)
 
-    return temp_file.seek(0)
+    temp_file.seek(0)
+    return temp_file

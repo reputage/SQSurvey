@@ -20,8 +20,9 @@ class CSV:
         :param resp: Response object
         """
         resp.status = falcon.HTTP_200
-        resp.content_type = 'text/csv'
+        # resp.content_type = 'text/csv'
+        resp.set_header("Content-Disposition", "attachment; filename=\"Responses.csv\"")
 
         data = dbing.surveyDB.getAll(0, dbing.surveyDB.count())
         data = list(data["data"].values())
-        resp.stream = csving.to_csv(data)
+        resp.body = csving.to_csv(data).getvalue()
