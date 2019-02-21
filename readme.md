@@ -74,8 +74,7 @@ http://localhost:8080/csv
 /suveys
 -------
 
-GET One
--------
+#### GET One
 Returns the original data uploaded with an ip_address field added
 ```
 http://localhost:8080/surveys/{uuid}
@@ -88,8 +87,7 @@ Response
 }
 ```
 
-GET All
--------
+#### GET All
 Returns all responses starting at offset up to limit
 ```
 http://localhost:8080/surveys?offset=0&limit=10
@@ -119,8 +117,7 @@ Response
 ```
 
 
-POST
-----
+#### POST
 Expects a json request body
 ```
 http://localhost:8080/surveys
@@ -129,9 +126,8 @@ http://localhost:8080/surveys
 /csv
 ----
 
-GET
----
-will return a .csv file download
+#### GET
+Returns a .csv file download
 ```
 http://localhost:8080/csv
 ```
