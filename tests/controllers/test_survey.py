@@ -188,3 +188,32 @@ def testValidGetAllWithQueryString(client):
 
     assert response.status == falcon.HTTP_200
     assert json.loads(response.content) == exp_result
+
+
+def testPostBodySize(client):
+    surveyResult = {
+        "ip_address": "127.0.0.1",
+        "data": "Adkfjasojvoiamnvoaoijeaofrmvml;kv mfjvgoiwajoipwjlkmgal;kjgnvo;javoiamvgawmvokjmawoi jwajf oiwfe lk;aj"
+                "ml;k;sam lk;j iojaelkgj osiagnaljkw hviuawnlk;jnv;slnlak;golawnl;kvhjngklawn ;oawnfl;kaj sdlvgkamwelkf"
+                "jl kganmkljvalkgjoidfgalkwmnvoijamglkajoigawlkAdkfjasojvoiamnvoaoijeaofrmvml;kv mfjvgoiwajoipwjlkmgal;"
+                "kjgnvo;javoiamvgawmvokjmawoi jwajf oiwfe lk;ajml;k;sam lk;j iojaelkgj osiagnaljkw hviuawnlk;jnv;slnlak"
+                ";golawnl;kvhjngklawn ;oawnfl;kaj sdlvgkamwelkfjl kganmkljvalkgjoidfgalkwmnvoijamglkajoigawlkAdkfjasojv"
+                "oiamnvoaoijeaofrmvml;kv mfjvgoiwajoipwjlkmgal;kjgnvo;javoiamvgawmvokjmawoi jwajf oiwfe lk;ajml;k;sam l"
+                "k;j iojaelkgj osiagnaljkw hviuawnlk;jnv;slnlak;golawnl;kvhjngklawn ;oawnfl;kaj sdlvgkamwelkfjl kganmkl"
+                "jvalkgjoidfgalkwmnvoijamglkajoigawlkAdkfjasojvoiamnvoaoijeaofrmvml;kv mfjvgoiwajoipwjlkmgal;kjgnvo;jav"
+                "oiamvgawmvokjmawoi jwajf oiwfe lk;ajml;k;sam lk;j iojaelkgj osiagnaljkw hviuawnlk;jnv;slnlak;golawnl;k"
+                "vhjngklawn ;oawnfl;kaj sdlvgkamwelkfjl kganmkljvalkgjoidfgalkwmnvoijamglkajoigawlk"
+    }
+
+    data = json.dumps(surveyResult)
+    assert len(data) > 1000
+
+    response = client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
+
+    assert response.status == falcon.HTTP_201
+
+    # resp_data = json.loads(response.content)
+    # resp_key = list(resp_data.keys())[0]
+    #
+    # assert len(resp_data) == 1
+    # assert resp_data[resp_key] == surveyResult
