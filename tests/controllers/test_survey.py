@@ -21,7 +21,7 @@ def testSurveyPost(client):
     resp_key = list(resp_data.keys())[0]
 
     assert len(resp_data) == 1
-    assert resp_data[resp_key] == surveyResult
+    assert resp_data[resp_key]["survey_data"] == surveyResult
 
 
 def testSurveyGetAll(client):
@@ -36,7 +36,7 @@ def testSurveyGetAll(client):
     assert len(response["data"]) == 1
 
     for survey in response["data"].values():
-        assert survey == surveyResult
+        assert survey["survey_data"] == surveyResult
 
 
 def testSurveyGet(client):
@@ -50,7 +50,7 @@ def testSurveyGet(client):
 
     response = client.simulate_get("{}/{}".format(SURVEY_BASE_PATH, id))
 
-    assert json.loads(response.content) == surveyResult
+    assert json.loads(response.content)["survey_data"] == surveyResult
 
 
 def testSurveyGetAllInvalidQueryString(client):

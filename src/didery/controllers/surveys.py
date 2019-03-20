@@ -1,5 +1,6 @@
 import falcon
 import uuid
+import arrow
 
 try:
     import simplejson as json
@@ -93,7 +94,7 @@ class Survey:
         :param resp: Response object
         """
         helping.parseReqBody(req)
-        body = req.body
+        survey_data = req.body
 
         # documentation says remote_addr is a string,
         # but in some cases it's a tuple.
@@ -103,10 +104,16 @@ class Survey:
         if type(ip_address) is tuple:
             ip_address = ip_address[0]
 
-        body["ip_address"] = ip_address
+        body = {
+            "survey_data": survey_data,
+            "metadata": {
+                "ip_address": ip_address,
+                "received": str(arrow.utcnow())
+            }
+        }
 
         # We don't want to lose survey data, so if an ip address
-        # cannot be found fall back to uuid's to save the data.
+        # cannot be found log it and save the data.
         if type(ip_address) is not str:
             log_data = {
                 "title": "Unknown IP Address Format",
