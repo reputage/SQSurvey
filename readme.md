@@ -66,13 +66,15 @@ Running these tests prior to hosting the server helps ensure that everything in 
 
 API
 ===
-The server has a single endpoint that will service GET and POST requests
+The server has two endpoints.
 ```
 http://localhost:8080/surveys
+http://localhost:8080/csv
 ```
-
-GET One
+/suveys
 -------
+
+#### GET One
 Returns the original data uploaded with an ip_address field added
 ```
 http://localhost:8080/surveys/{uuid}
@@ -85,8 +87,7 @@ Response
 }
 ```
 
-GET All
--------
+#### GET All
 Returns all responses starting at offset up to limit
 ```
 http://localhost:8080/surveys?offset=0&limit=10
@@ -116,9 +117,17 @@ Response
 ```
 
 
-POST
-----
+#### POST
 Expects a json request body
 ```
 http://localhost:8080/surveys
+```
+
+/csv
+----
+
+#### GET
+Returns a .csv file download
+```
+http://localhost:8080/csv
 ```
