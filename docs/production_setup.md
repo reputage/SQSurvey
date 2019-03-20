@@ -111,7 +111,7 @@ Use these steps for cleaning up test servers or clearing out data so the next su
     ```
 
 3. Restart the server
-    The server won't notice the db has been removed till you restart the survey.
+    The server won't notice the db has been removed till you restart it.
     ```bash
     sudo reboot
     ```
