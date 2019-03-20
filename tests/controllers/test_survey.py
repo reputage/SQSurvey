@@ -192,17 +192,32 @@ def testValidGetAllWithQueryString(client):
 
 def testPostBodySize(client):
     surveyResult = {
-        "ip_address": "127.0.0.1",
-        "data": "Adkfjasojvoiamnvoaoijeaofrmvml;kv mfjvgoiwajoipwjlkmgal;kjgnvo;javoiamvgawmvokjmawoi jwajf oiwfe lk;aj"
-                "ml;k;sam lk;j iojaelkgj osiagnaljkw hviuawnlk;jnv;slnlak;golawnl;kvhjngklawn ;oawnfl;kaj sdlvgkamwelkf"
-                "jl kganmkljvalkgjoidfgalkwmnvoijamglkajoigawlkAdkfjasojvoiamnvoaoijeaofrmvml;kv mfjvgoiwajoipwjlkmgal;"
-                "kjgnvo;javoiamvgawmvokjmawoi jwajf oiwfe lk;ajml;k;sam lk;j iojaelkgj osiagnaljkw hviuawnlk;jnv;slnlak"
-                ";golawnl;kvhjngklawn ;oawnfl;kaj sdlvgkamwelkfjl kganmkljvalkgjoidfgalkwmnvoijamglkajoigawlkAdkfjasojv"
-                "oiamnvoaoijeaofrmvml;kv mfjvgoiwajoipwjlkmgal;kjgnvo;javoiamvgawmvokjmawoi jwajf oiwfe lk;ajml;k;sam l"
-                "k;j iojaelkgj osiagnaljkw hviuawnlk;jnv;slnlak;golawnl;kvhjngklawn ;oawnfl;kaj sdlvgkamwelkfjl kganmkl"
-                "jvalkgjoidfgalkwmnvoijamglkajoigawlkAdkfjasojvoiamnvoaoijeaofrmvml;kv mfjvgoiwajoipwjlkmgal;kjgnvo;jav"
-                "oiamvgawmvokjmawoi jwajf oiwfe lk;ajml;k;sam lk;j iojaelkgj osiagnaljkw hviuawnlk;jnv;slnlak;golawnl;k"
-                "vhjngklawn ;oawnfl;kaj sdlvgkamwelkfjl kganmkljvalkgjoidfgalkwmnvoijamglkajoigawlk"
+        "Name": "xyz",
+        "Email": "xyz@domain.com",
+        "Response": {
+            "Rank each of the five game concepts on ease of navigation.-SeedQuest": "1",
+            "Rank each of the five game concepts on ease of navigation.-Cliffside": "1",
+            "Rank each of the five game concepts on ease of navigation.-Laboratory": "1",
+            "Rank each of the five game concepts on ease of navigation.-Mind Palace": "1",
+            "Rank each of the five game concepts on ease of navigation.-Flatlands": "1",
+            "Rank each of the five game concepts on how intuitive and enjoyable the gameplay is.-SeedQuest": "1",
+            "Rank each of the five game concepts on how intuitive and enjoyable the gameplay is.-Laboratory": "1",
+            "Rank each of the five game concepts on how intuitive and enjoyable the gameplay is.-Mind Palace": "1",
+            "Rank each of the five game concepts on how intuitive and enjoyable the gameplay is.-Flatlands": "1",
+            "Rank each of the five game concepts on how quickly you were able to learn the game path.-SeedQuest": "1",
+            "Rank each of the five game concepts on how quickly you were able to learn the game path.-Cliffside": "1",
+            "Rank each of the five game concepts on how quickly you were able to learn the game path.-Laboratory": "1",
+            "Rank each of the five game concepts on how quickly you were able to learn the game path.-Mind Palace": "1",
+            "Rank each of the five game concepts on how quickly you were able to learn the game path.-Flatlands": "1",
+            "Rank each of the five game concepts on overall experience.-SeedQuest": "4th",
+            "Rank each of the five game concepts on overall experience.-Cliffside": "3rd",
+            "Rank each of the five game concepts on overall experience.-Laboratory": "4th",
+            "Rank each of the five game concepts on overall experience.-Memory Palace": "5th",
+            "Rank each of the five game concepts on overall experience.-Flatlands": "5th",
+            "Do you have any other comments or suggestions about any of the game concepts-Game Navigation": "ewfsdcxcdsfewrfsdczxds",
+            "Do you have any other comments or suggestions about any of the game concepts-Memorability": "1",
+            "Do you have any other comments or suggestions about any of the game concepts-Art Style": "1"
+        }
     }
 
     data = json.dumps(surveyResult)
@@ -211,9 +226,3 @@ def testPostBodySize(client):
     response = client.simulate_post(SURVEY_BASE_PATH, body=json.dumps(surveyResult).encode())
 
     assert response.status == falcon.HTTP_201
-
-    # resp_data = json.loads(response.content)
-    # resp_key = list(resp_data.keys())[0]
-    #
-    # assert len(resp_data) == 1
-    # assert resp_data[resp_key] == surveyResult
