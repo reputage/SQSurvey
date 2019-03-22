@@ -115,3 +115,7 @@ Use these steps for cleaning up test servers or clearing out data so the next su
     ```bash
     sudo reboot
     ```
+
+Tools
+=====
+lmdb has a number of cli tools for managing databases [here](http://www.lmdb.tech/doc/tools.html).
